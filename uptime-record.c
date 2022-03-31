@@ -2,27 +2,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-
 char is_silent;
 
-void uptime(long uptime) {         // prints the uptime
+void uptime(long uptime) {      // prints the uptime
     long days = uptime/86400;
     long hours = uptime/3600 - days*24;
     long mins = uptime/60 - days*1440 - hours*60;
     long sec = uptime - days*86400 - hours*3600 - mins*60;
 
     if(days) {
-        printf("%ldd ", days);     // print the number of days passed if more than 0
+        printf("%ldd ", days);  // print the number of days passed if more than 0
     }
     if(hours) {
-        printf("%ldh ", hours);       // print the number of days passed if more than 0
+        printf("%ldh ", hours); // print the number of days passed if more than 0
     }
     if(mins) {
-        printf("%ldm ", mins);        // print the number of minutes passed if more than 0
+        printf("%ldm ", mins);  // print the number of minutes passed if more than 0
     }
     if(sec) {
-        printf("%lds", sec);         // print the number of seconds passed if more than 0
+        printf("%lds", sec);    // print the number of seconds passed if more than 0
     }
 }
 
@@ -43,7 +41,10 @@ int main(const int argc, const char **argv) {
 
     long current = info.uptime;
 
-    FILE *fp = fopen("/home/alba4k/.uptimeRecord", "r+");
+    char path[61];
+    snprintf(path, 61, "%s/.config/uptime-record", getenv("HOME"));
+
+    FILE *fp = fopen(path, "r+");
     if(!fp) {return 69;} // file didn't open correctly
     
     char best[10];
@@ -66,6 +67,7 @@ int main(const int argc, const char **argv) {
         uptime(atol(best));
     }
 
+    printf("\n");
     fclose(fp);
     return 0;
 }
