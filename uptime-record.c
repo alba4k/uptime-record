@@ -30,11 +30,11 @@ void uptime(long uptime) {      // prints the uptime
 
 int main(const int argc, const char **argv) {
     for(int i = 1; i < argc; i++) {
-        if(!strcmp("-s", argv[1]) || !strcmp("--silent", argv[1]))
+        if(!strcmp("-s", argv[i]) || !strcmp("--silent", argv[i]))
             is_silent = 1;
-        else if(!strcmp("-h", argv[1]) || !strcmp("--help", argv[1]))
+        else if(!strcmp("-h", argv[i]) || !strcmp("--help", argv[i]))
             asking_help = 1;
-        else if(!strcmp("-c", argv[1]) || !strcmp("--color", argv[1])) {
+        else if(!strcmp("-c", argv[i]) || !strcmp("--color", argv[i])) {
             if(argv[i+1]) {
                 if(!strcmp(argv[i+1],"black")) {
                     color = "\e[30m";
@@ -64,11 +64,11 @@ int main(const int argc, const char **argv) {
     }
 
     if(asking_help) {
-        printf("Keep track of your highest uptime!", color);
-        printf("\n%sFLAGS\e[0m:", color);
-        printf("\t%s-h\e[0m, current%s--help\e[0m:\tPrint this help menu and exit", color, color);
+        printf("Keep track of your highest uptime!\n", color);
+        printf("\n%sFLAGS\e[0m:\n", color);
+        printf("\t%s-h\e[0m, %s--help\e[0m:\tPrint this help menu and exit\n", color, color);
         printf("\t%s-c\e[0m,%s --color\e[0m:\t Change the output color (default: cyan) [black, red, green, yellow, blue, pink, cyan, shell]\n", color, color);
-        printf("\tcurrent%s-s\e[0m, current%s--silent\e[0m:\tDon't print any output", color, color);
+        printf("\t%s-s\e[0m, %s--silent\e[0m:\tDon't print any output\n", color, color);
         return 0;
     }
     struct sysinfo info;
@@ -90,7 +90,7 @@ int main(const int argc, const char **argv) {
         if(!is_silent) {
             printf("Current uptime: ");
             uptime(current);
-            printf("\ncurrent%sThis is your highest uptime!\e[0m\n\nPrevious highest: ");
+            printf("\n%sThis is your highest uptime!\e[0m\n\nPrevious highest: ", color);
             uptime(atol(best));
         }
 
