@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 char is_silent;
+bool asking_help = 0;
+char *color = "\e[32m";
 
 void uptime(long uptime) {      // prints the uptime
     long days = uptime/86400;
@@ -27,15 +30,47 @@ void uptime(long uptime) {      // prints the uptime
 
 int main(const int argc, const char **argv) {
     for(int i = 1; i < argc; i++) {
-        if(!strcmp("-h", argv[1]) || !strcmp("--help", argv[1])) {
-            puts("Keep track of your highest uptime!");
-            puts("\n\e[32mFLAGS\e[0m:");
-            puts("\t\e[32m-h\e[0m, \e[32m--help\e[0m:\tPrint this help menu and exit");
-            puts("\t\e[32m-s\e[0m, \e[32m--silent\e[0m:\tDon't print any output");
-            return 0;
-        } else if(!strcmp("-s", argv[1]) || !strcmp("--silent", argv[1])) is_silent = 1;
+        if(!strcmp("-s", argv[1]) || !strcmp("--silent", argv[1]))
+            is_silent = 1;
+        else if(!strcmp("-h", argv[1]) || !strcmp("--help", argv[1]))
+            asking_help = 1;
+        else if(!strcmp("-c", argv[1]) || !strcmp("--color", argv[1])) {
+            if(argv[i+1]) {
+                if(!strcmp(argv[i+1],"black")) {
+                    color = "\e[30m";
+                } else if(!strcmp(argv[i+1],"red")) {
+                    color = "\e[31m";
+                } else if(!strcmp(argv[i+1],"green")) {
+                    color = "\e[32m";
+                } else if(!strcmp(argv[i+1],"yellow")) {
+                    color = "\e[33m";
+                } else if(!strcmp(argv[i+1],"blue")) {
+                    color = "\e[34m";
+                } else if(!strcmp(argv[i+1],"pink")) {
+                    color = "\e[35m";
+                } else if(!strcmp(argv[i+1],"cyan")) {
+                    color = "\e[36m";
+                } else if(!strcmp(argv[i+1],"shell")) {
+                    color = "";
+                } else {
+                    puts("ERROR: invalid color! Use --help for more info");
+                    return 0;
+                }
+            } else {
+                puts("ERROR: --color requires a color! Use --help for more info");
+                return 1;
+            }
+        }
     }
 
+    if(asking_help) {
+        printf("Keep track of your highest uptime!", color);
+        printf("\n%sFLAGS\e[0m:", color);
+        printf("\t%s-h\e[0m, current%s--help\e[0m:\tPrint this help menu and exit", color, color);
+        printf("\t%s-c\e[0m,%s --color\e[0m:\t Change the output color (default: cyan) [black, red, green, yellow, blue, pink, cyan, shell]\n", color, color);
+        printf("\tcurrent%s-s\e[0m, current%s--silent\e[0m:\tDon't print any output", color, color);
+        return 0;
+    }
     struct sysinfo info;
     sysinfo(&info);
 
@@ -55,7 +90,7 @@ int main(const int argc, const char **argv) {
         if(!is_silent) {
             printf("Current uptime: ");
             uptime(current);
-            printf("\n\e[32mThis is your highest uptime!\e[0m\n\nPrevious highest: ");
+            printf("\ncurrent%sThis is your highest uptime!\e[0m\n\nPrevious highest: ");
             uptime(atol(best));
         }
 
