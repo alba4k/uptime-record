@@ -53,11 +53,11 @@ int main(const int argc, const char **argv) {
                 } else if(!strcmp(argv[i+1],"shell")) {
                     color = "\e[0m";
                 } else {
-                    puts("ERROR: invalid color! Use --help for more info");
+                    puts("\e[31m\e[1mERROR\e[0m: invalid color! Use --help for more info");
                     return 0;
                 }
             } else {
-                puts("ERROR: --color requires a color! Use --help for more info");
+                puts("\e[31m\e[1mERROR\e[0m: --color requires a color! Use --help for more info");
                 return 1;
             }
         }
@@ -98,7 +98,7 @@ int main(const int argc, const char **argv) {
     } else if(!is_silent) {
         printf("Current uptime: ");
         uptime(current);
-        printf("\n\nHighest uptime: ");
+        printf("\n\n%sHighest uptime\e[0m: ", color);
         uptime(atol(best));
     }
 
