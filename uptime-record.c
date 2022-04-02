@@ -76,8 +76,8 @@ int main(const int argc, const char **argv) {
 
     long current = info.uptime;
 
-    char path[61];
-    snprintf(path, 61, "%s/.config/uptime-record", getenv("HOME"));
+    char path[64];
+    snprintf(path, 64, "%s/.config/uptime-record", getenv("HOME"));
 
     FILE *fp = fopen(path, "r+");
     if(!fp) {return 69;} // file didn't open correctly
