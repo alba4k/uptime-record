@@ -67,7 +67,7 @@ int main(const int argc, const char **argv) {
         printf("Keep track of your highest uptime!\n", color);
         printf("\n%sFLAGS\e[0m:\n", color);
         printf("\t%s-h\e[0m, %s--help\e[0m:\tPrint this help menu and exit\n", color, color);
-        printf("\t%s-c\e[0m,%s --color\e[0m:\t Change the output color (default: green) [black, red, green, yellow, blue, pink, cyan, shell]\n", color, color);
+        printf("\t%s-c\e[0m,%s --color\e[0m:\t Change the output color (default: green) [black, red, green, yellow, blue, purple, cyan, shell]\n", color, color);
         printf("\t%s-s\e[0m, %s--silent\e[0m:\tDon't print any output\n", color, color);
         return 0;
     }
