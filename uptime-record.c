@@ -3,9 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+
 char is_silent;
 bool asking_help = 0;
 char *color = "\e[32m";
+bool user_is_an_idiot = false;
 
 void uptime(long uptime) {      // prints the uptime
     long days = uptime/86400;
@@ -53,15 +55,17 @@ int main(const int argc, const char **argv) {
                 } else if(!strcmp(argv[i+1],"shell")) {
                     color = "\e[0m";
                 } else {
-                    puts("\e[31m\e[1mERROR\e[0m: invalid color! Use --help for more info");
-                    return 0;
+                    fputs("\e[31m\e[1mERROR\e[0m: invalid color! Use --help for more info", stderr);
+                    user_is_an_idiot = true;
                 }
             } else {
-                puts("\e[31m\e[1mERROR\e[0m: --color requires a color! Use --help for more info");
-                return 1;
+                fputs("\e[31m\e[1mERROR\e[0m: --color requires a color! Use --help for more info", stderr);
+                user_is_an_idiot = true;
             }
         }
     }
+
+    if(user_is_an_idiot) return 1; // you fucking idiot
 
     if(asking_help) {
         printf("Keep track of your highest uptime!\n", color);
