@@ -4,28 +4,28 @@
 #include <string.h>
 #include <stdbool.h>
 
-char is_silent;
-bool asking_help = 0;
-char *color = "\e[32m";
+bool is_silent = false;
+bool asking_help = false;
 bool user_is_an_idiot = false;
+char *color = "\e[32m";
 
 void uptime(long uptime) {      // prints the uptime
     long days = uptime/86400;
-    long hours = uptime/3600 - days*24;
-    long mins = uptime/60 - days*1440 - hours*60;
-    long sec = uptime - days*86400 - hours*3600 - mins*60;
+    int hours = uptime/3600 - days*24;
+    int mins = uptime/60 - days*1440 - hours*60;
+    int sec = uptime - days*86400 - hours*3600 - mins*60;
 
     if(days) {
-        printf("%ldd ", days);  // print the number of days passed if more than 0
+        printf("%dd ", days);  // print the number of days passed if more than 0
     }
     if(hours) {
-        printf("%ldh ", hours); // print the number of days passed if more than 0
+        printf("%dh ", hours); // print the number of days passed if more than 0
     }
     if(mins) {
-        printf("%ldm ", mins);  // print the number of minutes passed if more than 0
+        printf("%dm ", mins);  // print the number of minutes passed if more than 0
     }
     if(sec) {
-        printf("%lds", sec);    // print the number of seconds passed if more than 0
+        printf("%ds", sec);    // print the number of seconds passed if more than 0
     }
 }
 
@@ -33,33 +33,35 @@ void uptime(long uptime) {      // prints the uptime
 int main(const int argc, const char **argv) {
     for(int i = 1; i < argc; i++) {
         if(!strcmp("-s", argv[i]) || !strcmp("--silent", argv[i]))
-            is_silent = 1;
+            is_silent = true;
         else if(!strcmp("-h", argv[i]) || !strcmp("--help", argv[i]))
-            asking_help = 1;
+            asking_help = true;
         else if(!strcmp("-c", argv[i]) || !strcmp("--color", argv[i])) {
             if(argv[i+1]) {
-                if(!strcmp(argv[i+1],"black")) {
-                    color = "\e[30m";
-                } else if(!strcmp(argv[i+1],"red")) {
-                    color = "\e[31m";
-                } else if(!strcmp(argv[i+1],"green")) {
-                    color = "\e[32m";
-                } else if(!strcmp(argv[i+1],"yellow")) {
-                    color = "\e[33m";
-                } else if(!strcmp(argv[i+1],"blue")) {
-                    color = "\e[34m";
-                } else if(!strcmp(argv[i+1],"purple")) {
-                    color = "\e[35m";
-                } else if(!strcmp(argv[i+1],"cyan")) {
-                    color = "\e[36m";
-                } else if(!strcmp(argv[i+1],"shell")) {
-                    color = "\e[0m";
-                } else {
-                    fputs("\e[31m\e[1mERROR\e[0m: invalid color! Use --help for more info", stderr);
-                    user_is_an_idiot = true;
+                char * colors[8][2] = {
+                    {"black", "\e[30m"},
+                    {"red", "\e[31m"},
+                    {"green", "\e[32m"},
+                    {"yellow", "\e[33m"},
+                    {"blue", "\e[34m"},
+                    {"purple", "\e[35m"},
+                    {"cyan", "\e[36m"},
+                    {"shell", "\e[30m"},
+                };
+
+                for (int j = 0; j < 8; ++j) {
+                    if (!strcmp(argv[i+1], colors[j][0])) {
+                        color = colors[j][1];
+                        goto color;
+                    }
                 }
+
+                fputs("\e[31m\e[1mERROR\e[0m: invalid color! Use --help for more info\n", stderr);
+                user_is_an_idiot = true;
+
+                color: ;
             } else {
-                fputs("\e[31m\e[1mERROR\e[0m: --color requires a color! Use --help for more info", stderr);
+                fputs("\e[31m\e[1mERROR\e[0m: --color requires a color! Use --help for more info\n", stderr);
                 user_is_an_idiot = true;
             }
         }
@@ -78,7 +80,7 @@ int main(const int argc, const char **argv) {
     struct sysinfo info;
     sysinfo(&info);
 
-    long current = info.uptime;
+    unsigned long current = info.uptime;
 
     char path[64];
     snprintf(path, 64, "%s/.config/uptime-record", getenv("HOME"));
