@@ -81,11 +81,11 @@ int main(const int argc, const char **argv) {
             unsigned long current;
             char best[16];
             char path[LOGIN_NAME_MAX + 32]; // login name + space for "/home/" and "/.config/uptime-record"
-            snprintf(path, 64, "%s/.config/uptime-record", getenv("HOME"));
+            snprintf(path, LOGIN_NAME_MAX + 32, "%s/.config/uptime-record", getenv("HOME"));
 
             FILE *fp = fopen(path, "r");
-            if(!fp)
-                return 69; // file didn't open correctly
+            if(!fp) // file didn't open correctly
+                return -1;
             fclose(fp);
             
             while(true) {
@@ -125,12 +125,13 @@ int main(const int argc, const char **argv) {
 
     unsigned long current = info.uptime;
     char best[16];
-    char path[64];
+    char path[LOGIN_NAME_MAX + 32];
 
-    snprintf(path, 64, "%s/.config/uptime-record", getenv("HOME"));
+    snprintf(path, LOGIN_NAME_MAX + 32, "%s/.config/uptime-record", getenv("HOME"));
 
     FILE *fp = fopen(path, "r+");
-    if(!fp) {return 69;} // file didn't open correctly
+    if(!fp) // file didn't open correctly
+        return -1;
     
     fgets(best, 10, fp);
     rewind(fp);
