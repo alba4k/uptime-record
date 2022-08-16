@@ -8,9 +8,18 @@
 
 #define DEFAULT_TIME 300
 
+#ifndef LOGIN_NAME_MAX
+    #ifdef HOST_NAME_MAX
+        #define LOGIN_NAME_MAX HOST_NAME_MAX
+    #else
+        #define LOGIN_NAME_MAX 128
+    #endif
+#endif
+
 bool is_silent = false;
 bool asking_help = false;
 bool user_is_an_idiot = false;
+int background = 0;
 char *color = "\e[32m";
 int time = DEFAULT_TIME;
 
@@ -72,37 +81,7 @@ int main(const int argc, const char **argv) {
             }
         }
         else if(!strcmp("-b", argv[i]) || !strcmp("--background", argv[i])) {
-            if(i < argc - 1) {
-                time = atoi(argv[i+1]) ? atoi(argv[i+1]) : DEFAULT_TIME;
-            }
-            struct sysinfo info;
-            sysinfo(&info);
-
-            unsigned long current;
-            char best[16];
-            char path[LOGIN_NAME_MAX + 32]; // login name + space for "/home/" and "/.config/uptime-record"
-            snprintf(path, LOGIN_NAME_MAX + 32, "%s/.config/uptime-record", getenv("HOME"));
-
-            FILE *fp = fopen(path, "r");
-            if(!fp) // file didn't open correctly
-                return -1;
-            fclose(fp);
-            
-            while(true) {
-                sysinfo(&info);
-                current = info.uptime;
-
-                fp = fopen(path, "r+");
-                fgets(best, 10, fp);
-                rewind(fp);
-                
-                if(current > atol(best)) {
-                    fprintf(fp, "%ld\n", current);
-                    printf("Updating %s to %ld from %s\n", path, current, best);
-                }
-                fclose(fp);
-                sleep(time);
-            }
+            background = i+1;
         }
     }
 
@@ -110,24 +89,80 @@ int main(const int argc, const char **argv) {
         return 1; // you fucking idiot
 
     if(asking_help) {
-        printf("Keep track of your highest uptime!\n");
+        printf("%suptime-record\e[0m - Keep track of your highest uptime!\n", color);
         printf("\n%sFLAGS\e[0m:\n", color);
-        printf("\t%s-h\e[0m, %s--help\e[0m:\tPrint this help menu and exit\n", color, color);
-        printf("\t%s-c\e[0m,%s --color\e[0m:\t Change the output color (default: green)\n"
-               " [\e[30mblack\e[0m, \e[31mred\e[0m, \e[32mgreen\e[0m, \e[33myellow\e[0m, \e[34mblue\e[0m,"
+        printf("\t%s-h\e[0m, %s--help\e[0m:\t  Print this help menu and exit\n", color, color);
+        printf("\t%s-c\e[0m,%s --color\e[0m:\t  Change the output color (default: green)\n"
+               "\t\t\t  [\e[30mblack\e[0m, \e[31mred\e[0m, \e[32mgreen\e[0m, \e[33myellow\e[0m, \e[34mblue\e[0m,"
                " \e[35mpurple\e[0m, \e[36mcyan\e[0m, \e[39mwhite\e[0m]\n", color, color);
-        printf("\t%s-s\e[0m, %s--silent\e[0m:\tDon't print any output\n", color, color);
-        printf("\t%s-b\e[0m, %s--background\e[0m:\tKeep active (default: 300) [refresh seconds]\n", color, color);
+        printf("\t%s-s\e[0m, %s--silent\e[0m\t  Don't print any output (update-only)\n", color, color);
+        printf("\t%s-b\e[0m, %s--background\e[0m: Stay running at a set interval (default: 300)\n\t\t\t  [refresh seconds]\n", color, color);
         return 0;
     }
+
+    char *home = getenv("HOME");
+    // this will never need to run, right?
+    if(!home) {
+        fflush(stdout);
+        fputs("\e[31m\e[1mERROR\e[0m:$HOME is not set, interrupting!\n", stderr);
+        fflush(stderr);
+
+        return 1;
+    }
+    if(!home[0]) {
+        fflush(stdout);
+        fputs("\e[31m\e[1mERROR\e[0m:$HOME is empty, interrupting!\n", stderr);
+        fflush(stderr);
+
+        return 1;
+    }
+
     struct sysinfo info;
     sysinfo(&info);
-
+    
     unsigned long current = info.uptime;
     char best[16];
-    char path[LOGIN_NAME_MAX + 32];
+    char path[LOGIN_NAME_MAX+48];
+            char *xdg_data_home = getenv("XDG_DATA_HOME");
+
+            if(xdg_data_home) {     // does it exist?
+                if(xdg_data_home[0])
+                    snprintf(path, LOGIN_NAME_MAX+48, "%s/uptime-record", xdg_data_home);
+                else
+                    snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
+            } else
+                snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
 
     snprintf(path, LOGIN_NAME_MAX + 32, "%s/.config/uptime-record", getenv("HOME"));
+
+    if(background) {
+        if(background < argc) {
+            time = atoi(argv[background]) ? atoi(argv[background]) : DEFAULT_TIME;
+        }
+        struct sysinfo info;
+        sysinfo(&info);
+
+        FILE *fp = fopen(path, "r");
+        if(!fp) // file didn't open correctly
+            return -1;
+        fclose(fp);
+            
+        while(true) {
+            sysinfo(&info);
+            current = info.uptime;
+
+            fp = fopen(path, "r+");
+            fgets(best, 10, fp);
+            rewind(fp);
+                
+            if(current > (unsigned long)atol(best)) {
+                fprintf(fp, "%ld\n", current);
+                if(!is_silent) printf("Updating %s to %ld from %s\n", path, current, best);
+            }
+            fclose(fp);
+            sleep(time);
+        }
+    }
 
     FILE *fp = fopen(path, "r+");
     if(!fp) // file didn't open correctly
@@ -136,11 +171,11 @@ int main(const int argc, const char **argv) {
     fgets(best, 10, fp);
     rewind(fp);
     
-    if(current > atol(best)) {
+    if(current > (unsigned long)atol(best)) {
         if(!is_silent) {
             printf("Current uptime: ");
             uptime(current);
-            printf("\n%sThis is your highest uptime!\e[0m\n\nPrevious highest: ", color);
+            printf("\n%s\e[1mThis is your highest uptime!\e[0m\n\nPrevious highest: ", color);
             uptime(atol(best));
         }
 
