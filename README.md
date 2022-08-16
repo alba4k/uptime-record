@@ -12,6 +12,8 @@ The uptime is updated every time the program is ran (if higher than the previous
 
 The highest uptime ever recorded is saved in `$XDG_DATA_HOME/uptime-record`, usually `~/.local/share/XDG_DATA_HOME`. This file can be manually edited, but this would make you a cheater. Don't.
 
+## **Warning**: If you've been using an old version of uptime record, your record might still be in ~/.config/uptime-record. Move it to ~/.local/share/uptime-record if you want your old time to be kept
+
 The program accepts some command line arguments, a help page can be found when running with the `--help` flag. 
 
 ## How to compile and install this program?
