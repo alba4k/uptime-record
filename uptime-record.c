@@ -123,17 +123,15 @@ int main(const int argc, const char **argv) {
     unsigned long current = info.uptime;
     char best[16];
     char path[LOGIN_NAME_MAX+48];
-            char *xdg_data_home = getenv("XDG_DATA_HOME");
+    char *xdg_data_home = getenv("XDG_DATA_HOME");
 
-            if(xdg_data_home) {     // does it exist?
-                if(xdg_data_home[0])
-                    snprintf(path, LOGIN_NAME_MAX+48, "%s/uptime-record", xdg_data_home);
-                else
-                    snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
-            } else
-                snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
-
-    snprintf(path, LOGIN_NAME_MAX + 32, "%s/.config/uptime-record", getenv("HOME"));
+    if(xdg_data_home) {     // does it exist?
+        if(xdg_data_home[0])
+            snprintf(path, LOGIN_NAME_MAX+48, "%s/uptime-record", xdg_data_home);
+        else
+            snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
+    } else
+        snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
 
     if(background) {
         if(background < argc) {
@@ -143,8 +141,10 @@ int main(const int argc, const char **argv) {
         sysinfo(&info);
 
         FILE *fp = fopen(path, "r");
-        if(!fp) // file didn't open correctly
+        if(!fp) {   // file didn't open correctly
+            fprintf(stderr, "please create a file to store the uptime in (touch %s)", path);
             return -1;
+        }
         fclose(fp);
             
         while(true) {
@@ -165,8 +165,11 @@ int main(const int argc, const char **argv) {
     }
 
     FILE *fp = fopen(path, "r+");
-    if(!fp) // file didn't open correctly
+    if(!fp) {// file didn't open correctly
+        fprintf(stderr, "please create a file to store the uptime in (touch %s)", path);
+
         return -1;
+    }
     
     fgets(best, 10, fp);
     rewind(fp);
