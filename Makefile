@@ -6,6 +6,7 @@ ifeq ($(shell "whoami"),alba4k)
 endif
 
 uptime-record: uptime-record.c
+	mkdir -p ~/.local/share
 	touch ~/.local/share/uptime-record
 	$(CC) uptime-record.c -o uptime-record -Wall -Wextra -Ofast
 
