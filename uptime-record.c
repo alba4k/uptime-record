@@ -89,14 +89,16 @@ int main(const int argc, const char **argv) {
         return 1; // you fucking idiot
 
     if(asking_help) {
-        printf("%suptime-record\e[0m - Keep track of your highest uptime!\n", color);
-        printf("\n%sFLAGS\e[0m:\n", color);
+        printf("\e[1m%suptime-record\e[0m - Keep track of your highest uptime!\n", color);
+        printf("\n\e[1m%sFLAGS\e[0m:\n", color);
         printf("\t%s-h\e[0m, %s--help\e[0m:\t  Print this help menu and exit\n", color, color);
         printf("\t%s-c\e[0m,%s --color\e[0m:\t  Change the output color (default: green)\n"
                "\t\t\t  [\e[30mblack\e[0m, \e[31mred\e[0m, \e[32mgreen\e[0m, \e[33myellow\e[0m, \e[34mblue\e[0m,"
                " \e[35mpurple\e[0m, \e[36mcyan\e[0m, \e[39mwhite\e[0m]\n", color, color);
         printf("\t%s-s\e[0m, %s--silent\e[0m\t  Don't print any output (update-only)\n", color, color);
         printf("\t%s-b\e[0m, %s--background\e[0m: Stay running at a set interval (default: 300)\n\t\t\t  [refresh seconds]\n", color, color);
+        printf("\nReport a bug: \e[1m%shttps://github.com/alba4k/uptime-record/issues\e[0m\n", color);
+
         return 0;
     }
 
