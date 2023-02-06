@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-#define DEFAULT_TIME 300
+#define DEFAULT_SECONDS 300
 
 #ifndef LOGIN_NAME_MAX
     #ifdef HOST_NAME_MAX
@@ -15,13 +15,6 @@
         #define LOGIN_NAME_MAX 128
     #endif
 #endif
-
-bool is_silent = false;
-bool asking_help = false;
-bool user_is_an_idiot = false;
-int background = 0;
-char *color = "\e[32m";
-int time = DEFAULT_TIME;
 
 void uptime(long uptime) {      // prints the uptime
     long days = uptime/86400;
@@ -43,12 +36,20 @@ void uptime(long uptime) {      // prints the uptime
     }
 }
 
-
-
 int main(const int argc, const char **argv) {
+    bool silent = false;
+    bool asking_help = false;
+    bool verbose = false;
+    bool user_is_an_idiot = false;
+    int background = 0;
+    char *color = "\e[32m";
+    int time = DEFAULT_SECONDS;
+
     for(int i = 1; i < argc; i++) {
         if(!strcmp("-s", argv[i]) || !strcmp("--silent", argv[i]))
-            is_silent = true;
+            silent = true;
+        else if(!strcmp("-v", argv[i]) || !strcmp("--verbose", argv[i]))
+            verbose = true;
         else if(!strcmp("-h", argv[i]) || !strcmp("--help", argv[i]))
             asking_help = true;
         else if(!strcmp("-c", argv[i]) || !strcmp("--color", argv[i])) {
@@ -80,9 +81,8 @@ int main(const int argc, const char **argv) {
                 user_is_an_idiot = true;
             }
         }
-        else if(!strcmp("-b", argv[i]) || !strcmp("--background", argv[i])) {
+        else if(!strcmp("-b", argv[i]) || !strcmp("--background", argv[i]))
             background = i+1;
-        }
     }
 
     if(user_is_an_idiot)
@@ -92,11 +92,13 @@ int main(const int argc, const char **argv) {
         printf("\e[1m%suptime-record\e[0m - Keep track of your highest uptime!\n", color);
         printf("\n\e[1m%sFLAGS\e[0m:\n", color);
         printf("\t%s-h\e[0m, %s--help\e[0m:\t  Print this help menu and exit\n", color, color);
-        printf("\t%s-c\e[0m,%s --color\e[0m:\t  Change the output color (default: green)\n"
+        printf("\t%s-s\e[0m, %s--silent\e[0m\t  Don't print most output (update-only)\n", color, color);
+        printf("\t%s-v\e[0m, %s--verbose\e[0m\t  Print some debug info\n", color, color);
+        printf("\t%s-b\e[0m, %s--background\e[0m: Stay running at a set interval (default: %d)\n\t\t\t "
+               " [refresh seconds]\n", color, color, DEFAULT_SECONDS);
+        printf("\t%s-c\e[0m,%s --color\e[0m:\t  Change the output color (default: \e[32mgreen\e[0m)\n"
                "\t\t\t  [\e[30mblack\e[0m, \e[31mred\e[0m, \e[32mgreen\e[0m, \e[33myellow\e[0m, \e[34mblue\e[0m,"
                " \e[35mpurple\e[0m, \e[36mcyan\e[0m, \e[39mwhite\e[0m]\n", color, color);
-        printf("\t%s-s\e[0m, %s--silent\e[0m\t  Don't print any output (update-only)\n", color, color);
-        printf("\t%s-b\e[0m, %s--background\e[0m: Stay running at a set interval (default: 300)\n\t\t\t  [refresh seconds]\n", color, color);
         printf("\nReport a bug: \e[1m%shttps://github.com/alba4k/uptime-record/issues\e[0m\n", color);
 
         return 0;
@@ -106,14 +108,14 @@ int main(const int argc, const char **argv) {
     // this will never need to run, right?
     if(!home) {
         fflush(stdout);
-        fputs("\e[31m\e[1mERROR\e[0m:$HOME is not set, interrupting!\n", stderr);
+        fputs("\e[31m\e[1mERROR\e[0m: $HOME is not set, interrupting!\n", stderr);
         fflush(stderr);
 
         return 1;
     }
     if(!home[0]) {
         fflush(stdout);
-        fputs("\e[31m\e[1mERROR\e[0m:$HOME is empty, interrupting!\n", stderr);
+        fputs("\e[31m\e[1mERROR\e[0m: $HOME is empty, interrupting!\n", stderr);
         fflush(stderr);
 
         return 1;
@@ -135,16 +137,19 @@ int main(const int argc, const char **argv) {
     } else
         snprintf(path, LOGIN_NAME_MAX+48, "%s/.local/share/uptime-record", home);
 
+    if(verbose)
+        printf("Using %s%s", path, silent ? "" : "\n\n");
+
     if(background) {
-        if(background < argc) {
-            time = atoi(argv[background]) ? atoi(argv[background]) : DEFAULT_TIME;
-        }
+        if(background < argc)
+            time = atoi(argv[background]) ? atoi(argv[background]) : DEFAULT_SECONDS;
+
         struct sysinfo info;
         sysinfo(&info);
 
         FILE *fp = fopen(path, "r");
         if(!fp) {   // file didn't open correctly
-            fprintf(stderr, "please create a file to store the uptime in (touch %s)", path);
+            fprintf(stderr, "\e[1m\e[31mERROR\e[0m: please create a file to store the uptime in (touch %s)", path);
             return -1;
         }
         fclose(fp);
@@ -159,7 +164,7 @@ int main(const int argc, const char **argv) {
                 
             if(current > (unsigned long)atol(best)) {
                 fprintf(fp, "%ld\n", current);
-                if(!is_silent) printf("Updating %s to %ld from %s\n", path, current, best);
+                if(verbose) printf("Updating %s to %ld from %s\n", path, current, best);
             }
             fclose(fp);
             sleep(time);
@@ -168,7 +173,7 @@ int main(const int argc, const char **argv) {
 
     FILE *fp = fopen(path, "r+");
     if(!fp) {// file didn't open correctly
-        fprintf(stderr, "please create a file to store the uptime in (touch %s)", path);
+        fprintf(stderr, "\e[1m\e[31mERROR\e[0m: please create a file to store the uptime in (touch %s)", path);
 
         return -1;
     }
@@ -177,7 +182,7 @@ int main(const int argc, const char **argv) {
     rewind(fp);
     
     if(current > (unsigned long)atol(best)) {
-        if(!is_silent) {
+        if(!silent) {
             printf("Current uptime: ");
             uptime(current);
             printf("\n%s\e[1mThis is your highest uptime!\e[0m\n\nPrevious highest: ", color);
@@ -185,7 +190,7 @@ int main(const int argc, const char **argv) {
         }
 
         fprintf(fp, "%ld\n", current);
-    } else if(!is_silent) {
+    } else if(!silent) {
         printf("Current uptime: ");
         uptime(current);
         printf("\n\n%sHighest uptime\e[0m: ", color);

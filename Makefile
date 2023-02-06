@@ -14,7 +14,7 @@ run: uptime-record
 	./uptime-record
 
 install: uptime-record
-	cp uptime-record /usr/bin/uptime-record
+	install uptime-record /usr/bin/uptime-record || echo -e "\e[31m\e[1mERROR\e[0m: Running without root proviliges?"
 
 uninstall:
 	rm -f /usr/bin/uptime-record

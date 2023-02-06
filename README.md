@@ -10,7 +10,7 @@
 
 The uptime is updated every time the program is ran (if higher than the previous record), so all you need to do is run `uptime-record`.
 
-The highest uptime ever recorded is saved in `$XDG_DATA_HOME/uptime-record`, usually `~/.local/share/XDG_DATA_HOME`. This file can be manually edited, but this would make you a cheater. Don't.
+The highest uptime ever recorded is saved in `$XDG_DATA_HOME/uptime-record`, usually `~/.local/share/uptime-record`. This file can be manually edited, but that would make you a cheater. Don't.
 
 ## **Warning**: If you've been using an old version of uptime record, your record might still be in ~/.config/uptime-record. Move it to ~/.local/share/uptime-record if you want your old time to be kept
 
@@ -43,7 +43,18 @@ If you just compiled the source code, you might also want to reinstall the execu
 
 ## Tips and tricks
 
-You might want to run this automatically before every shutdown or reboot. If you're using systemd (if you're not sure, then you probably are) you can easily achieve this by having some sort of executable (maybe a shell script or a symlink/copy) that runs the program in `/usr/lib/systemd/system-shutdown/`. Every executable file in this directory will be ran before your systemd turns off.
+You might want to run this automatically before every shutdown or reboot. You can easily achieve this by having some sort of executable (maybe a shell script or a symlink/copy) that runs the program in `/usr/lib/systemd/system-shutdown/`. Every executable file in this directory will be ran before your system turns off.
+
+Also, you can run the program automatically after you log in every 5 minutes by copying `uptime-record.service` to `~/.config/systemd/user`, followed by running `systemctl --user enable --now uptime-record.service` to enable the service.
+You could also copy it to `/etc/systemd/system/` or `/usr/lib/systemd/system` and enable it using `systemctl enable --now uptime-record.service`.
+The exact interval can be changed by editing the file itself.
+
+Both methods rely on systemd. If you don't know what your init system is, you are probably using systemd. If you're not, then you probably already know how to do the same things using your init. You can usually find out what init system you are using by simply googling "[Your distro] default init system".
+
+## To-do list:
+This is just for me, those are some features I would like to implement but am too lazy to.
+
+- [ ] `--read-only` (`-r`) flag. This would only display the highest recorded uptime. Conflicts with `--silent` and `--background`.
 
 ---
 

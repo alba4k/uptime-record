@@ -1,0 +1,9 @@
+[Unit]
+Description=Record the highest uptime of the machine
+
+[Service]
+ExecStart=/usr/bin/uptime-record -b -v
+Type=simple
+
+[Install]
+WantedBy=default.target
