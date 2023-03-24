@@ -197,7 +197,8 @@ int main(const int argc, const char **argv) {
         uptime(atol(best));
     }
 
-    printf("\n");
+    if(!silent)
+        printf("\n");
     fclose(fp);
     return 0;
 }
